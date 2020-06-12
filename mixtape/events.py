@@ -10,6 +10,10 @@ from gi.repository import Gst  # type: ignore
 
 
 class States(enum.Enum):
+    """
+    Beppu.Basket compatible enum with Gst.State.
+    """
+
     VOID_PENDING = 0
     NULL = 1
     READY = 2
@@ -49,11 +53,14 @@ class PlayerEvents:
     state: beppu.Basket = attr.ib(init=False)
 
     @state.default
-    def _get_state(self) -> beppu.Basket:
+    def _state(self) -> beppu.Basket:
+        """Default for attrs state"""
         return beppu.Basket(enum=States)
 
     def pick_state(self, state: Gst.State) -> None:
+        """Shortcut for picking a state using Gst.State"""
         self.state.pick(States(int(state)))
 
     async def wait_for_state(self, state: Gst.State) -> None:
+        """Shortcut for awaiting a state using Gst.State"""
         await self.state.wait_for(States(int(state)))

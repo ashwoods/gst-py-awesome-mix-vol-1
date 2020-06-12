@@ -1,3 +1,3 @@
-from .players import AsyncPlayer
+from mixtape.players import Player
 
-__all__ = ["AsyncPlayer"]
+__all__ = ["Player"]

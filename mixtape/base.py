@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple, Type, TypeVar
+from typing import Tuple, TypeVar
 
 import attr
 import gi
@@ -19,13 +19,6 @@ BasePlayerType = TypeVar("BasePlayerType", bound="BasePlayer")
 class BasePlayer:
     """Player base player"""
 
-    # TODO: configuration for set_auto_flush_bus
-    # as the application depends on async bus messages
-    # we might want to handle flushing the bus ourselves,
-    # otherwise setting the pipeline to `Gst.State.NULL`
-    # flushes the bus including the state change messages
-    # self.pipeline.set_auto_flush_bus(False)
-
     pipeline: Gst.Pipeline = attr.ib()
 
     def __del__(self) -> None:
@@ -35,11 +28,6 @@ class BasePlayer:
         if self.state is not Gst.State.NULL:
             logger.warning("Player cleanup on destructor")
             self.teardown()
-
-    @property
-    def bus(self) -> Gst.Bus:
-        """Convenience property for the pipeline Gst.Bus"""
-        return self.pipeline.get_bus()
 
     @property
     def state(self) -> Gst.State:
@@ -61,46 +49,18 @@ class BasePlayer:
         if self.state is not Gst.State.NULL:
             self.set_state(Gst.State.NULL)
 
-    def ready(self) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
+    def _ready(self) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
         """Set pipeline to state to Gst.State.READY"""
         return self.set_state(Gst.State.READY)
 
-    def play(self) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
+    def _play(self) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
         """Set pipeline to state to Gst.State.PLAY"""
         return self.set_state(Gst.State.PLAYING)
 
-    def pause(self) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
+    def _pause(self) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
         """Set pipeline to state to Gst.State.PAUSED"""
         return self.set_state(Gst.State.PAUSED)
 
-    # fmt: off
-    def stop(self, send_eos: bool = False, teardown: bool = False) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
-        """Set pipeline to state to Gst.State.NULL, with the option of sending eos and teardown"""
-    # fmt: on
-        if send_eos:
-            self.send_eos()
-
-        ret = self.set_state(Gst.State.NULL)
-
-        if teardown:
-            self.teardown()
-
-        return ret
-
-    def send_eos(self) -> bool:
-        """Send a eos event to the pipeline"""
-        return self.pipeline.send_event(Gst.Event.new_eos())
-
-    @classmethod
-    def create(cls: Type[BasePlayerType], pipeline: Gst.Pipeline) -> BasePlayerType:
-        """Player factory from a given pipeline that calls setup by default"""
-        player = cls(pipeline)
-        player.setup()
-        return player
-
-    @classmethod
-    def from_description(cls: Type[BasePlayerType], description: str) -> BasePlayerType:
-        """Player factory from a pipeline description"""
-        pipeline = Gst.parse_launch(description)
-        assert isinstance(pipeline, Gst.Pipeline)
-        return cls.create(pipeline=pipeline)
+    def _stop(self) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
+        """Set pipeline to state to Gst.State.NULL"""
+        return self.set_state(Gst.State.NULL)

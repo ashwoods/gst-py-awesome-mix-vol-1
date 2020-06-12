@@ -26,7 +26,6 @@ def test_base_player_init_and_default_props(pipeline, Gst):
 
     assert player.pipeline == pipeline
     assert player.state == Gst.State.NULL
-    assert isinstance(player.bus, Gst.Bus)
 
 
 def test_base_player_state_setter_and_getter(Gst, pipeline, mocker):
@@ -57,10 +56,10 @@ def test_error_on_state_change(Gst):
 @pytest.mark.parametrize(
     "method, state",
     [
-        ("ready", Gst.State.READY),
-        ("play", Gst.State.PLAYING),
-        ("pause", Gst.State.PAUSED),
-        ("stop", Gst.State.NULL),
+        ("_ready", Gst.State.READY),
+        ("_play", Gst.State.PLAYING),
+        ("_pause", Gst.State.PAUSED),
+        ("_stop", Gst.State.NULL),
     ],
 )
 def test_pipeline_state_shortcuts(pipeline, mocker, method, state):
@@ -68,10 +67,3 @@ def test_pipeline_state_shortcuts(pipeline, mocker, method, state):
     player.pipeline.set_state = mocker.MagicMock()
     getattr(player, method)()
     player.pipeline.set_state.assert_called_with(state)
-
-
-def test_player_send_eos(Gst, pipeline, mocker):
-    player = BasePlayer(pipeline=pipeline)
-    player.pipeline.send_event = mocker.MagicMock()
-    player.send_eos()
-    player.pipeline.send_event.assert_called()
