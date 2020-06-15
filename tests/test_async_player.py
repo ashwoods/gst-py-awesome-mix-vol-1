@@ -76,3 +76,12 @@ async def test_async_player_sequence(Gst, pipeline):
         await getattr(player, step)()
         await asyncio.sleep(1)
     player.teardown()
+
+
+@pytest.mark.asyncio
+async def test_player_properties(Gst, pipeline):
+    player = await Player.create(pipeline)
+    # TODO: test type
+    assert len(list(player.sinks)) == 1
+    assert len(list(player.sinks)) == 1
+    assert len(list(player.elements)) == 3

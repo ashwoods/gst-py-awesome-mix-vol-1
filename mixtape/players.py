@@ -52,6 +52,21 @@ class Player(BasePlayer):
         """Convenience shortcut for pm hook"""
         return self.plugins.hook
 
+    @property
+    def sinks(self) -> Gst.Iterator:
+        """Returns all sink elements"""
+        return self.pipeline.iterate_sinks()
+
+    @property
+    def sources(self) -> Gst.Iterator:
+        """Return all source elements"""
+        return self.pipeline.iterate_sources()
+
+    @property
+    def elements(self) -> Gst.Iterator:
+        """Return all pipeline elements"""
+        return self.pipeline.iterate_elements()
+
     async def ready(self) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
         """Async override of base.ready"""
         ret = super()._ready()
