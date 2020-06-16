@@ -1,11 +1,4 @@
-from typing import (
-    Any,
-    Optional,
-    Type,
-    TypeVar,
-    Tuple,
-    List,
-)
+from typing import Any, Optional, Type, TypeVar, Tuple, List
 
 import attr
 import pluggy
@@ -53,19 +46,25 @@ class Player(BasePlayer):
         return self.plugins.hook
 
     @property
-    def sinks(self) -> Gst.Iterator:
+    def sinks(self) -> List[Any]:
         """Returns all sink elements"""
-        return self.pipeline.iterate_sinks()
+        return list(self.pipeline.iterate_sinks())
 
     @property
-    def sources(self) -> Gst.Iterator:
+    def sources(self) -> List[Any]:
         """Return all source elements"""
-        return self.pipeline.iterate_sources()
+        return list(self.pipeline.iterate_sources())
 
     @property
-    def elements(self) -> Gst.Iterator:
+    def elements(self) -> List[Any]:
         """Return all pipeline elements"""
-        return self.pipeline.iterate_elements()
+        return list(self.pipeline.iterate_elements())
+
+    def get_elements_by_gtype(self, gtype: Any) -> List[Any]:
+        """Return all elements in pipeline that match gtype"""
+        return [e for e in self.elements if e.get_factory().get_element_type() == gtype]
+
+    # -- pipeline control -- #
 
     async def ready(self) -> Tuple[Gst.StateChangeReturn, Gst.State, Gst.State]:
         """Async override of base.ready"""
@@ -114,6 +113,8 @@ class Player(BasePlayer):
         self.hook.teardown()
         super().teardown()
         self.events.teardown.set()
+
+    # -- class factories -- #
 
     @classmethod
     async def create(
