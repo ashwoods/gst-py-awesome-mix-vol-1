@@ -21,7 +21,7 @@ logger.setLevel(logging.INFO)
 
 # flake8 plugin is way too verbose
 def pytest_configure(config):
-    logging.getLogger("flake8").setLevel(logging.WARN)
+    logging.getLogger("flake8").setLevel(logging.ERROR)
     logging.getLogger("bandit").setLevel(logging.WARN)
     logging.getLogger("blib2to3").setLevel(logging.WARN)
     logging.getLogger("stevedore").setLevel(logging.WARN)
@@ -49,16 +49,7 @@ def pipeline(Gst):
 
 
 @pytest.fixture
-def error_pipeline(Gst):
-    """Error pipeline"""
-    ERROR_PIPELINE_DESCRIPTION = "filesrc ! queue ! fakesink"
-    pipeline = Gst.parse_launch(ERROR_PIPELINE_DESCRIPTION)
-    assert isinstance(pipeline, Gst.Pipeline)
-    return pipeline
-
-
-@pytest.fixture
 def player(Gst):
-    from mixtape.players import AsyncPlayer
+    from mixtape import Player
 
-    return AsyncPlayer
+    return Player

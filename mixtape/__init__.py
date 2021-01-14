@@ -1,3 +1,5 @@
-from .players import AsyncPlayer
+from .players import Player
+from .boombox import BoomBox, hookspec
 
-__all__ = ["AsyncPlayer"]
+
+__all__ = ["Player", "BoomBox", "hookspec"]

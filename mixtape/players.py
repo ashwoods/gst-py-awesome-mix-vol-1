@@ -1,20 +1,20 @@
 import asyncio
 import logging
-from typing import Any, Type, TypeVar, Tuple, List, Callable, MutableMapping
-import attr
 import warnings
+from typing import Any, Callable, List, MutableMapping, Tuple, Type, TypeVar
+
+import attr
 import gi
 
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst
 
-from .exceptions import PlayerSetStateError, PlayerPipelineError, PlayerNotConfigured
 from .events import PlayerEvents
+from .exceptions import PlayerNotConfigured, PlayerPipelineError, PlayerSetStateError
 
 logger = logging.getLogger(__name__)
 
-PlayerType = TypeVar("PlayerType", bound="Player")
-AsyncPlayerType = TypeVar("AsyncPlayerType", bound="AsyncPlayer")
+P = TypeVar("P", bound="Player")
 
 
 @attr.s
@@ -41,8 +41,6 @@ class Player:
         """
         Make sure that the gstreamer pipeline is always cleaned up
         """
-        if self.state is not Gst.State.NULL:
-            self.teardown()
 
     @property
     def bus(self) -> Gst.Bus:
@@ -190,7 +188,7 @@ class Player:
         Handler for eos messages
         By default it sets the eos event
         """
-        logger.info("EOS message: %s received from pipeline on %s", message, bus)
+        logger.info("Received EOS message on bus")
         self.events.eos.set()
 
     def _on_async_done(self, bus: Gst.Bus, message: Gst.Message) -> None:
@@ -228,18 +226,19 @@ class Player:
         )
 
     @classmethod
-    async def create(cls: Type[PlayerType], pipeline: Gst.Pipeline) -> PlayerType:
+    async def create(cls: Type[P], pipeline: Gst.Pipeline) -> P:
         """Player factory from a given pipeline that calls setup by default"""
         player = cls(pipeline)
         player.setup()
         return player
 
     @classmethod
-    async def from_description(cls: Type[PlayerType], description: str) -> PlayerType:
+    async def from_description(cls: Type[P], description: str) -> P:
         """Player factory from a pipeline description"""
         pipeline = Gst.parse_launch(description)
-        assert isinstance(pipeline, Gst.Pipeline)
-        return await cls.create(pipeline=pipeline)
+        if not isinstance(pipeline, Gst.Pipeline):
+            raise ValueError("Invalid pipeline description")
+        return await cls.create(pipeline)
 
 
 class AsyncPlayer(Player):
